@@ -18,6 +18,8 @@ server.use(helmet());
 // server.use(logger("dev"));
 server.use(methodLogger);
 server.use(addName);
+// server.use(lockOut);
+server.use(timeBlock);
 
 server.use("/api/hubs", hubsRouter);
 
@@ -41,6 +43,25 @@ function methodLogger(req, res, next) {
 function addName(req, res, next) {
   req.name = "Bubba";
   next();
+}
+
+function lockOut(req, res, next) {
+  res.status(403).json({ message: "API Lockout" });
+  next();
+}
+
+// custom piece of middleware that blocks all requests when time is %3
+
+function timeBlock(req, res, next) {
+  const d = new Date();
+  const time = d.getTime();
+
+  if (time % 3 === 0) {
+    res.status(403).json({ message: "ApI blocked" });
+    next();
+  } else {
+    next();
+  }
 }
 
 module.exports = server;
