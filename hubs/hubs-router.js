@@ -5,7 +5,7 @@ const Messages = require("../messages/messages-model.js");
 
 const router = express.Router();
 
-// middleware only in hubs, not global to entire app
+// middleware only in hubs, not global to entire app using anonymous function
 router.use((req, res, next) => {
   console.log("We are in the hubs router land");
   next();
@@ -28,7 +28,7 @@ router.get("/", (req, res) => {
 
 // /api/hubs/:id
 
-router.get("/:id", (req, res) => {
+router.get("/:id", validateId, (req, res) => {
   Hubs.findById(req.params.id)
     .then(hub => {
       if (hub) {
@@ -60,7 +60,7 @@ router.post("/", (req, res) => {
     });
 });
 
-router.delete("/:id", (req, res) => {
+router.delete("/:id", validateId, (req, res) => {
   Hubs.remove(req.params.id)
     .then(count => {
       if (count > 0) {
@@ -78,7 +78,7 @@ router.delete("/:id", (req, res) => {
     });
 });
 
-router.put("/:id", (req, res) => {
+router.put("/:id", validateId, (req, res) => {
   Hubs.update(req.params.id, req.body)
     .then(hub => {
       if (hub) {
@@ -98,7 +98,7 @@ router.put("/:id", (req, res) => {
 
 // add an endpoint that returns all the messages for a hub
 // this is a sub-route or sub-resource
-router.get("/:id/messages", (req, res) => {
+router.get("/:id/messages", validateId, (req, res) => {
   Hubs.findHubMessages(req.params.id)
     .then(messages => {
       res.status(200).json(messages);
@@ -113,7 +113,7 @@ router.get("/:id/messages", (req, res) => {
 });
 
 // add an endpoint for adding new message to a hub
-router.post("/:id/messages", (req, res) => {
+router.post("/:id/messages", validateId, (req, res) => {
   const messageInfo = { ...req.body, hub_id: req.params.id };
 
   Messages.add(messageInfo)
@@ -128,5 +128,22 @@ router.post("/:id/messages", (req, res) => {
       });
     });
 });
+
+function validateId(req, res, next) {
+  const { id } = req.params;
+  Hubs.findById(id)
+    .then(hub => {
+      if (hub) {
+        req.hub = hub;
+        next();
+      } else {
+        res.status(404).json({ message: "No hub with specified id" });
+      }
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({ message: "Error processing your request" });
+    });
+}
 
 module.exports = router;
