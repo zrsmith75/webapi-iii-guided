@@ -15,11 +15,11 @@ server.use(bodyParser);
 // third part middleware
 server.use(helmet());
 // other morgan types 'tiny' 'combined'
-// server.use(logger("dev"));
-server.use(methodLogger);
+server.use(logger("dev"));
+// server.use(methodLogger);
 server.use(addName);
 // server.use(lockOut);
-server.use(timeBlock);
+// server.use(timeBlock);
 
 server.use("/api/hubs", hubsRouter);
 
@@ -52,16 +52,16 @@ function lockOut(req, res, next) {
 
 // custom piece of middleware that blocks all requests when time is %3
 
-function timeBlock(req, res, next) {
-  const d = new Date();
-  const time = d.getTime();
+// function timeBlock(req, res, next) {
+//   const d = new Date();
+//   const time = d.getTime();
 
-  if (time % 3 === 0) {
-    res.status(403).json({ message: "ApI blocked" });
-    next();
-  } else {
-    next();
-  }
-}
+//   if (time % 3 === 0) {
+//     res.status(403).json({ message: "ApI blocked" });
+//     next();
+//   } else {
+//     next();
+//   }
+// }
 
 module.exports = server;
